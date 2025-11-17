@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GameStore - Full Site</title>
+
+  <!-- FULL CSS RESTORE (THE ORIGINAL VIBE) -->
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:"Poppins",sans-serif;}
+    body{background:#0a0a0a;color:#fff;overflow-x:hidden;}
+
+    header{
+      width:100%;padding:20px 40px;background:#111;display:flex;
+      justify-content:space-between;align-items:center;position:sticky;
+      top:0;z-index:10;border-bottom:2px solid #00ffe544;
+    }
+    .logo{font-size:30px;font-weight:700;color:#00ffe5;letter-spacing:1px;}
+
+    nav a{
+      color:white;margin-left:20px;text-decoration:none;font-size:18px;
+      transition:0.2s;opacity:0.8;
+    }
+    nav a:hover{color:#00ffe5;opacity:1;}
+
+    .hero{
+      padding:120px 40px;text-align:center;
+      background:linear-gradient(#000000aa,#000000aa),url('https://i.imgur.com/oZzRn3J.jpeg');
+      background-size:cover;background-position:center;
+    }
+    .hero h1{font-size:55px;color:#00ffe5;margin-bottom:20px;}
+    .hero p{font-size:20px;color:#ddd;max-width:700px;margin:auto;}
+
+    .section{padding:50px 40px;}
+    .section h2{font-size:35px;margin-bottom:20px;color:#00ffe5;}
+
+    .grid{
+      display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+      gap:25px;
+    }
+    .card{
+      background:#141414;border-radius:18px;padding:18px;
+      box-shadow:0 0 15px #00fff533;transition:.3s;
+    }
+    .card:hover{transform:scale(1.05);box-shadow:0 0 25px #00fff599;}
+
+    .card img{
+      width:100%;height:160px;border-radius:12px;object-fit:cover;margin-bottom:10px;
+    }
+    .card h3{font-size:20px;margin-bottom:5px;}
+    .price{color:#00ffe5;margin-bottom:10px;}
+
+    .btn{
+      width:100%;padding:12px;border:none;border-radius:12px;cursor:pointer;
+      background:#00ffe5;color:#000;font-weight:600;font-size:16px;
+      transition:.2s;
+    }
+    .btn:hover{background:#00c8b8;}
+
+    /* CONTACT POPUP */
+    #contactPopup{
+      position:fixed;top:0;left:0;width:100%;height:100%;background:#000000cc;
+      display:none;justify-content:center;align-items:center;z-index:20;
+    }
+    .popup-box{
+      background:#111;padding:30px;border-radius:15px;width:350px;
+      box-shadow:0 0 20px #00ffe577;text-align:center;
+    }
+    .close-btn{
+      background:red;color:white;padding:8px 15px;border:none;border-radius:8px;
+      cursor:pointer;margin-top:20px;
+    }
+
+    /* ADMIN PAGE */
+    #adminPage{display:none;padding:40px;}
+    .admin-input{width:100%;padding:10px;margin:8px 0;border-radius:8px;border:none;}
+    .admin-btn{padding:12px 20px;background:#00ffe5;border:none;border-radius:10px;color:#000;font-weight:600;cursor:pointer;margin-top:10px;}
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">GameStore</div>
+    <nav>
+      <a href="#packs">Game Packs</a>
+      <a href="#games">Single Games</a>
+      <a href="#contact">Contact</a>
+      <a href="admin.html">Admin</a>
+    </nav>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <h1>Download • Play • Enjoy</h1>
+    <p>Your one–stop GameStore for PC Games. Install instantly via seller using AnyDesk.</p>
+  </section>
+
+  <!-- GAME PACKS -->
+  <section class="section" id="packs">
+    <h2>🔥 Game Packs</h2>
+    <div class="grid">
+      <div class="card">
+        <img src="https://i.imgur.com/TynE1oW.jpeg" />
+        <h3>Action Pack</h3>
+        <p class="price">₹499</p>
+        <button class="btn" onclick="buyGame('Action Pack', 499)">Buy Pack</button>
+      </div>
+      <div class="card">
+        <img src="https://i.imgur.com/2m3u9ZI.jpeg" />
+        <h3>Sports Pack</h3>
+        <p class="price">₹399</p>
+        <button class="btn" onclick="buyGame('Sports Pack', 399)">Buy Pack</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SINGLE GAMES -->
+  <section class="section" id="games">
+    <h2>🎮 Single Games</h2>
+    <div class="grid">
+      <div class="card">
+        <img src="https://i.imgur.com/3ZQ3ZQx.jpeg" />
+        <h3>GTA V</h3>
+        <p class="price">₹199</p>
+        <button class="btn" onclick="buyGame('GTA V', 199)">Buy Now</button>
+      </div>
+      <div class="card">
+        <img src="https://i.imgur.com/nN7z7pd.jpeg" />
+        <h3>Call of Duty MW</h3>
+        <p class="price">₹299</p>
+        <button class="btn" onclick="buyGame('Call of Duty MW', 299)">Buy Now</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT POPUP -->
+  <div id="contactPopup">
+    <div class="popup-box">
+      <h2>Contact Seller</h2>
+      <p>📞 Phone: 9699169326</p>
+      <p>💬 WhatsApp: 9699169326</p>
+      <button class="close-btn" onclick="closeContact()">Close</button>
+    </div>
+  </div>
+
+  <!-- JS SECTION -->
+  <script>
+    function buyGame(name, price){
+      let upiID = ""; // client UPI add later
+      if(upiID === ""){ document.getElementById('contactPopup').style.display = 'flex'; return; }
+
+      let url = `upi://pay?pa=${upiID}&pn=GameStore&am=${price}&cu=INR&tn=${encodeURIComponent(name)}`;
+      window.location.href = url;
+    }
+    function closeContact(){document.getElementById('contactPopup').style.display='none';}
+  </script>
+</body>
+</html>
