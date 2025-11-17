@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin Panel - GameStore</title>
+<style>
+:root {
+  --bg: #0d0d0d;
+  --card: #151515;
+  --accent: #00eaff;
+  --text: #ffffff;
+  --muted: #8b8b8b;
+}
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Poppins", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+.container {
+  width: 90%;
+  max-width: 1000px;
+  margin: auto;
+  padding: 40px 0;
+}
+.card {
+  background: var(--card);
+  padding: 25px;
+  border-radius: 16px;
+  margin-bottom: 25px;
+  box-shadow: 0 0 20px #00eaff20;
+}
+.card h2 {
+  margin: 0 0 10px;
+  color: var(--accent);
+}
+input, textarea, select {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  margin: 8px 0;
+  background: #222;
+  color: #fff;
+}
+button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #000;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+button:hover {
+  transform: scale(1.05);
+  opacity: 0.9;
+}
+.btn-danger {
+  background: #ff4b4b;
+}
+.item {
+  display: flex;
+  justify-content: space-between;
+  background: #1b1b1b;
+  padding: 15px;
+  margin: 10px 0;
+  border-radius: 12px;
+  box-shadow: 0 0 10px #00eaff15;
+}
+#loginScreen {
+  position: fixed;
+  inset: 0;
+  background: #000000e8;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+#loginBox {
+  background: #151515;
+  padding: 30px;
+  border-radius: 16px;
+  width: 300px;
+  box-shadow: 0 0 20px #00eaff40;
+  text-align: center;
+}
+</style>
+
+
+</head>
+<body>
+<div id="loginScreen">
+  <div id="loginBox">
+    <h2>Admin Login</h2>
+    <input type="password" id="adminPass" placeholder="Enter Password" />
+    <button onclick="checkPass()">Login</button>
+  </div>
+</div>
+
+<div class="container" id="panel" style="display:none;">
+
+  <div class="card">
+    <h2>Add / Edit Game</h2>
+    <input id="gName" placeholder="Game Name" />
+    <input id="gPrice" placeholder="Price" type="number" />
+    <input id="gGenre" placeholder="Genre" />
+    <input id="gThumb" placeholder="Thumbnail URL" />
+    <input id="gVideo" placeholder="Video URL" />
+    <textarea id="gDesc" placeholder="Description"></textarea>
+    <button id="addGameBtn">Save Game</button>
+  </div>
+
+  <div class="card">
+    <h2>Games List</h2>
+    <div id="gamesList"></div>
+  </div>
+
+  <div class="card">
+    <h2>Contact + UPI Settings</h2>
+    <input id="sPhone" placeholder="Phone Number" />
+    <input id="sWa" placeholder="WhatsApp Number" />
+    <input id="sAnydesk" placeholder="Anydesk ID" />
+    <input id="sUpi" placeholder="UPI ID" />
+    <button id="saveSettings">Save Settings</button>
+  </div>
+
+  <div class="card">
+    <h2>Messages</h2>
+    <div id="messagesList"></div>
+  </div>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, getDocs } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBvupqYpSB8G8MbtuRbE4xtm_nvpG2m8mE",
+  authDomain: "gamestore-1ecb7.firebaseapp.com",
+  projectId: "gamestore-1ecb7",
+  storageBucket: "gamestore-1ecb7.firebasestorage.app",
+  messagingSenderId: "619953006829",
+  appId: "1:619953006829:web:d7fbe51827c45484a244e4",
+  measurementId: "G-L4B63ZRWCH"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ========= LOGIN =========
+const ADMIN_PASSWORD = "1234"; // change later
+window.checkPass = function () {
+  const pass = document.getElementById("adminPass").value;
+  if (pass === ADMIN_PASSWORD) {
+    document.getElementById("loginScreen").style.display = "none";
+    document.getElementById("panel").style.display = "block";
+    refreshGamesList();
+  } else alert("Wrong Password!");
+};
+
+// ========= ADD GAME =========
+addGameBtn.addEventListener("click", async () => {
+  const name = gName.value.trim();
+  const price = Number(gPrice.value.trim());
+  if (!name || !price) return alert("Name + Price required!");
+
+  const payload = {
+    name,
+    price,
+    genre: gGenre.value.trim(),
+    thumb: gThumb.value.trim(),
+    video: gVideo.value.trim(),
+    desc: gDesc.value.trim()
+  };
+
+  await addDoc(collection(db, "games"), payload);
+  alert("Game Saved");
+  gName.value = gPrice.value = gGenre.value = gThumb.value = gVideo.value = gDesc.value = "";
+  refreshGamesList();
+});
+
+// ========= REFRESH GAMES =========
+async function refreshGamesList() {
+  gamesList.innerHTML = "";
+  const snap = await getDocs(collection(db, "games"));
+  snap.forEach((d) => {
+    const data = d.data();
+    const id = d.id;
+
+    const el = document.createElement("div");
+    el.className = "item";
+    el.innerHTML = `
+      <div>
+        <strong>${data.name}</strong>
+        <div style='color:var(--muted)'>₹${data.price} • ${data.genre}</div>
+      </div>
+      <div>
+        <button class='edit' data-id='${id}'>Edit</button>
+        <button class='btn-danger delete' data-id='${id}'>Delete</button>
+      </div>`;
+
+    gamesList.appendChild(el);
+  });
+
+  document.querySelectorAll(".delete").forEach((btn) =>
+    btn.addEventListener("click", async (e) => {
+      const id = e.target.dataset.id;
+      if (!confirm("Delete Game?")) return;
+      await deleteDoc(doc(db, "games", id));
+      refreshGamesList();
+    })
+  );
+
+  document.querySelectorAll(".edit").forEach((btn) =>
+    btn.addEventListener("click", async (e) => {
+      const id = e.target.dataset.id;
+      const all = await getDocs(collection(db, "games"));
+      const docu = all.docs.find((x) => x.id === id);
+      const data = docu.data();
+
+      gName.value = data.name;
+      gPrice.value = data.price;
+      gGenre.value = data.genre;
+      gThumb.value = data.thumb;
+      gVideo.value = data.video;
+      gDesc.value = data.desc;
+
+      await deleteDoc(doc(db, "games", id));
+      refreshGamesList();
+    })
+  );
+}
+
+// ========= SAVE SETTINGS =========
+saveSettings.addEventListener("click", async () => {
+  const payload = {
+    phone: sPhone.value.trim(),
+    whatsapp: sWa.value.trim(),
+    anydesk: sAnydesk.value.trim(),
+    upi: sUpi.value.trim(),
+  };
+
+  const old = await getDocs(collection(db, "settings"));
+  old.forEach(async (d) => await deleteDoc(doc(db, "settings", d.id)));
+  await addDoc(collection(db, "settings"), payload);
+  alert("Settings Saved");
+});
+
+// ========= LOAD MESSAGES =========
+const q = collection(db, "messages");
+onSnapshot(q, (snap) => {
+  messagesList.innerHTML = "";
+  snap.forEach((docu) => {
+    const m = docu.data();
+    const el = document.createElement("div");
+    el.className = "item";
+    el.innerHTML = `
+      <div>
+        <strong>${m.name || "Anonymous"}</strong>
+        <div style='color:var(--muted)'>${m.email || ""}</div>
+        <div style='color:var(--muted);margin-top:6px'>${m.message}</div>
+      </div>
+      <div style='text-align:right;color:var(--muted)'>${m.game || ""}</div>`;
+    messagesList.appendChild(el);
+  });
+});
+
+</script>
+</body>
+</html>
